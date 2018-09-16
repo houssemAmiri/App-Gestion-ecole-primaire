@@ -1,0 +1,217 @@
+//kol haja mabinet ******* tetekteb wahadha w texecutiwha wahadha :)
+
+*************************************************************************************
+CREATE TABLE  "INSTITUTEUR" 
+   (	"NCIN" NUMBER, 
+        "NOM" VARCHAR2(25) NOT NULL, 
+	"PRENOM" VARCHAR2(25) NOT NULL, 
+	"DATENAIS" VARCHAR2(25) NOT NULL, 
+	"SEXE" VARCHAR2(5) NOT NULL, 
+	"PAYS" VARCHAR2(30) NOT NULL, 
+	"VILLE" VARCHAR2(30), 
+	"ADRESSE" VARCHAR2(50) NOT NULL, 
+	"CODEPOSTAL" NUMBER, 
+	"NUMTLF" NUMBER NOT NULL, 
+	"EMAIL" VARCHAR2(50),
+	 PRIMARY KEY ("NCIN") ENABLE
+   ) ;
+**************************************************************************************
+
+CREATE TABLE  "ELEVE" 
+   (	"ID" NUMBER,
+        "NOM" VARCHAR2(25) NOT NULL, 
+	"PRENOM" VARCHAR2(25) NOT NULL,  
+        "DATENAIS" VARCHAR2(25) NOT NULL, 
+        "SEXE" VARCHAR2(5) NOT NULL,
+	"PAYS" VARCHAR2(30) NOT NULL,
+        "VILLE" VARCHAR2(30), 
+	"ADRESSE" VARCHAR2(30) NOT NULL, 
+	"CODEPOSTAL" NUMBER, 
+	"NIVEAU" VARCHAR2(10) NOT NULL,
+        "NCINRES" NUMBER NOT NULL,  
+	"NOMRES" VARCHAR2(25) NOT NULL, 
+	"PRENOMRES" VARCHAR2(30) NOT NULL,
+        "PROFESSIONRES" VARCHAR2(50),
+        "RELATION" VARCHAR2(50) NOT NULL,
+        "ADRESSERES" VARCHAR2(30) NOT NULL, 
+	"CODEPOSTALRES" NUMBER,  
+	"TELEPHONERES" NUMBER NOT NULL, 
+	"EMAILRES" VARCHAR2(60),  
+	 PRIMARY KEY ("ID") ENABLE
+   ) ;
+
+*************************************************************************************
+CREATE SEQUENCE eleve_seq START WITH 1;
+**************************************************************************************
+CREATE OR REPLACE TRIGGER eleve_bir 
+BEFORE INSERT ON eleve 
+FOR EACH ROW
+
+BEGIN
+  SELECT eleve_seq.NEXTVAL
+  INTO   :new.id
+  FROM   dual;
+END;
+/
+************************************************************************************
+CREATE TABLE "SALLE"
+    (    "ID" NUMBER,
+         "NOM" VARCHAR2(25),
+         "TYPE" VARCHAR2(20),
+         PRIMARY KEY("ID") ENABLE
+    );
+*************************************************************************************
+CREATE SEQUENCE salle_seq START WITH 1;
+************************************************************************************
+CREATE OR REPLACE TRIGGER salle_bir 
+BEFORE INSERT ON SALLE 
+FOR EACH ROW
+
+BEGIN
+  SELECT salle_seq.NEXTVAL
+  INTO   :new.id
+  FROM   dual;
+END;
+/
+***************************************************************************************
+CREATE TABLE "CLASSE"
+    (    "ID" NUMBER,
+         "NIVEAU" VARCHAR2(10),
+         "NOM" VARCHAR2(25),
+         PRIMARY KEY("ID") ENABLE
+    );
+***************************************************************************************
+CREATE SEQUENCE classe_seq START WITH 1;
+***************************************************************************************
+CREATE OR REPLACE TRIGGER classe_bir 
+BEFORE INSERT ON CLASSE 
+FOR EACH ROW
+
+BEGIN
+  SELECT classe_seq.NEXTVAL
+  INTO   :new.id
+  FROM   dual;
+END;
+/
+***************************************************************************************
+ALTER TABLE ELEVE
+ADD CLASSE NUMBER
+***************************************************************************************
+ALTER TABLE  "ELEVE" ADD CONSTRAINT "ELEVE_CLASSE" FOREIGN KEY ("CLASSE")
+	  REFERENCES  "CLASSE" ("ID") ON DELETE SET NULL ENABLE;
+****************************************************************************************
+CREATE TABLE "MATIERE"
+    (    "ID" NUMBER,
+         "NOM" VARCHAR2(40),
+         PRIMARY KEY("ID") ENABLE
+    );
+************************************************************************************
+CREATE SEQUENCE matiere_seq START WITH 1;
+**************************************************************************************
+CREATE OR REPLACE TRIGGER matiere_bir 
+BEFORE INSERT ON MATIERE 
+FOR EACH ROW
+
+BEGIN
+  SELECT matiere_seq.NEXTVAL
+  INTO   :new.id
+  FROM   dual;
+END;
+/
+**********************************************************************************
+CREATE TABLE "ABSENCE"
+    (    "ID" NUMBER,
+         "DATE" VARCHAR2(20),
+         "PERIODE" VARCHAR(20)
+         CONSTRAINT "ABSENCE_CON" PRIMARY KEY ("ID", "DATE") ENABLE
+    );ALTER TABLE  "ABSENCE" ADD CONSTRAINT "ABSENCE_CON2" FOREIGN KEY ("ID")
+      REFERENCES  "ELEVE" ("ID") ON DELETE SET NULL ENABLE;
+**********************************************************************************
+CREATE TABLE "ENSEIGNER"
+    (    "ID" NUMBER,
+         "NCIN" NUMBER,
+         "MAT" NUMBER,
+         CONSTRAINT "ENSEIGNER_PRIM" PRIMARY KEY ("NCIN", "MAT") ENABLE
+         CONSTRAINT "ENSEIGNER_CON_ID" UNIQUE ("ID") ENABLE
+    );
+**************************************************************************************
+ALTER TABLE  "ENSEIGNER" ADD CONSTRAINT "ENSEIGNER_CON" FOREIGN KEY ("NCIN")
+      REFERENCES  "INSTITUTEUR" ("NCIN") ON DELETE SET NULL ENABLE;
+**************************************************************************************
+ALTER TABLE  "ENSEIGNER" ADD CONSTRAINT "ENSEIGNER_CON2" FOREIGN KEY ("MAT")
+      REFERENCES  "MATIERE" ("ID") ON DELETE SET NULL ENABLE;
+**************************************************************************************
+CREATE SEQUENCE enseigner_seq START WITH 1;
+**************************************************************************************
+CREATE OR REPLACE TRIGGER enseigner_bir 
+BEFORE INSERT ON ENSEIGNER 
+FOR EACH ROW
+
+BEGIN
+  SELECT enseigner_seq.NEXTVAL
+  INTO   :new.id
+  FROM   dual;
+END;
+/
+**********************************************************************************
+CREATE TABLE "SEANCE"
+    (    "ID" NUMBER,
+         "JOUR" NUMBER,
+         "PERIODE" VARCHAR2(20),
+         "SALLE" NUMBER,
+         "CLASSE" NUMBER,
+CONSTRAINT "SEANCE_PRIM" PRIMARY KEY ("ID", "JOUR", "PERIODE") ENABLE
+    );
+*****************************************************************************************
+ALTER TABLE  "SEANCE" ADD CONSTRAINT "SEANCE_CON" FOREIGN KEY ("ID")
+	  REFERENCES  "ENSEIGNER" ("ID") ON DELETE SET NULL ENABLE;
+ALTER TABLE  "SEANCE" ADD CONSTRAINT "SEANCE_CON2" FOREIGN KEY ("SALLE")
+	  REFERENCES  "SALLE" ("ID") ON DELETE SET NULL ENABLE;
+ALTER TABLE  "SEANCE" ADD CONSTRAINT "SEANCE_CON3" FOREIGN KEY ("CLASSE")
+	  REFERENCES  "CLASSE" ("ID") ON DELETE SET NULL ENABLE;
+*************************************************************************************
+CREATE TABLE "ECOLE"
+    (   "NOM" VARCHAR2(25) NOT NULL, 
+	"VILLE" VARCHAR2(30), 
+	"ADRESSE" VARCHAR2(50) NOT NULL, 
+	"CODEPOSTAL" NUMBER, 
+	"TELEPHONE" NUMBER NOT NULL, 
+        "FAX" NUMBER,
+        "SITEWEB" VARCHAR2(50),
+	"EMAIL" VARCHAR2(50)
+    );
+*************************************************************************************
+CREATE TABLE "NOTE"
+    (    "ELEVE" NUMBER,
+         "MATIERE" NUMBER,
+         "SEMESTRE" NUMBER,
+         "NOTE" DECIMAL(4,2),
+CONSTRAINT "SEANCE_PRIM" PRIMARY KEY ("ELEVE", "MATIERE", "SEMESTRE") ENABLE
+    );
+*************************************************************************************
+ALTER TABLE  "NOTE" ADD CONSTRAINT "NOTE_CON1" FOREIGN KEY ("ELEVE")
+	  REFERENCES  "ELEVE" ("ID") ON DELETE SET NULL ENABLE;
+ALTER TABLE  "NOTE" ADD CONSTRAINT "NOTE_CON2" FOREIGN KEY ("MATIERE")
+	  REFERENCES  "MATIERE" ("ID") ON DELETE SET NULL ENABLE;
+*************************************************************************************
+CREATE TABLE  "USERS" 
+   (	"USERNAME" VARCHAR2(25), 
+	"PASSWORD" VARCHAR2(10) NOT NULL ENABLE,
+        "NOM" VARCHAR2(25) NOT NULL ENABLE,
+        "PRENOM" VARCHAR2(25) NOT NULL ENABLE,
+	"ACCES" VARCHAR2(15) NOT NULL ENABLE,
+        "EMAIL" VARCHAR2(30) NOT NULL ENABLE, 
+	 PRIMARY KEY ("USERNAME") ENABLE
+   ) ;
+*************************************************************************************
+INSERT INTO USERS VALUES('admin','admin','almia','karim','123456789','hotou mail men 3andkom'); // hethi bch yetzed el admin eli andou acces kol chay w matensewich thotou mail mte3kom bech tjarbou
+*************************************************************************************
+
+
+
+
+
+
+
+
+
